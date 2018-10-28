@@ -1,0 +1,64 @@
+import os
+from time import sleep
+from subprocess import check_output
+import psutil
+
+found = 0
+def killprocess(filename):
+    print(filename)
+    for proc in psutil.process_iter():
+        try:
+            pinfo = proc.as_dict(attrs=['pid', 'name', 'username', 'open_files'])
+        except psutil.NoSuchProcess:
+            pass
+        else:
+            if pinfo['open_files'] != None:
+                for directory in pinfo['open_files']:
+                    #print ("directory is : ", directory[0], "\n")
+                    if filename == directory[0] :
+                        pid = str(pinfo['pid'])
+                        print("Process:", pinfo['name'], " with pid :" ,pinfo['pid'], "is found to be increasing the size of file:",filename)
+                        proc.kill()
+                        #command = "taskkill /f /pid "+pid
+                        #os.system(command)
+                        #print("Ending the process")
+
+
+directory = 'C:\\FileScanner\\Important\\'
+dict = {}
+
+i=0
+
+for i in range(10):
+     if (i==0):
+         for filename in os.listdir(directory):
+            fp = os.path.join(directory, filename)
+            size = os.path.getsize(fp)
+            values = list((size,0))
+            dict[fp] = values
+     else : 
+         for filename in os.listdir(directory):
+             fp = os.path.join(directory, filename)
+             size = os.path.getsize(fp)
+             fp_key = dict[fp]
+             pre_size = fp_key[0]
+             change = size - pre_size
+             rate = change/(i*5)
+             if rate > 1 :
+                print("fp is:",fp)
+                killprocess(fp)
+                print("Ending the script")
+                found = 1
+                break
+             fp_key[1] = rate
+             print(fp)
+             print(os.path.getsize(fp))			
+     if found == 1:
+        break
+     sleep(2)
+     i=i+1
+     for x in dict:
+        print (x)
+        print (dict[x])
+		#for y in dict[x]:
+            #print (y,':',dict[x][y])
